@@ -1,16 +1,16 @@
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-/**
- *
- * @author Bet Hdz
- */
-public class Model {
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
-     public JsonNode obtenerPerfiles() throws Exception {
+public class Model{
+    public JsonNode obtenerPerfiles() throws Exception {
         String url = "https://serpapi.com/search.json?engine=google_scholar_profiles&mauthors=IPN&hl=es-419&api_key=5d22edaa9923020628bb570a6ed33b22961c1017864e6a8b20e030202b8992fc";
 
         // Crear un cliente HTTP
@@ -35,6 +35,40 @@ public class Model {
    
          return rootNode.get("profiles");
         }
-    }
+    // Método para guardar un dato en la base de datos
+   public void guardarDato(JsonNode perfiles) {
+    // Conexión a la base de datos
+    try {
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bdinvestigadores", "root", "");
 
-   
+        // Consulta SQL para insertar el dato
+        String sql = "INSERT INTO investigador (name) VALUES (?)";
+        PreparedStatement statement = conn.prepareStatement(sql);
+
+        if (perfiles != null && perfiles.isArray()) {
+            for (JsonNode perfil : perfiles) {
+                String nombre = perfil.get("name").asText();
+            
+
+
+                // Verificar que el nombre no esté vacío
+                if (!nombre.isEmpty()) {
+                    System.out.println("Investigador guardado: \n" + nombre);
+                    statement.setString(1, nombre);
+                    statement.executeUpdate();
+                } else {
+                    System.out.println("El nombre está vacío.");
+                }
+            }
+        }
+        
+        // Confirmar los cambios en la base de datos
+        conn.commit();
+        
+        // Cerrar la conexión
+        conn.close();
+    } catch (SQLException e) {
+        // Manejar excepciones
+        e.printStackTrace();
+    }
+   }}

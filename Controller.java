@@ -21,5 +21,13 @@ public class Controller {
             e.printStackTrace();
         }
     }
-}
     
+     public void procesarPerfiles() {
+        try {
+            JsonNode perfiles = model.obtenerPerfiles();
+            model.guardarDato(perfiles);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
